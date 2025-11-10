@@ -36,8 +36,16 @@
       "dest": "api/catalogo.js"
     },
     {
+      "src": "/api/productos",
+      "dest": "api/catalogo.js"
+    },
+    {
       "src": "/api/productos/(.*)",
       "dest": "api/catalogo.js"
+    },
+    {
+      "src": "/api/carrito",
+      "dest": "api/pedidos.js"
     },
     {
       "src": "/api/carrito/(.*)",
