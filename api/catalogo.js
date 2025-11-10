@@ -100,15 +100,62 @@ app.post('/api/productos', authMiddleware, isAdmin, async (req, res) => {
   try {
     const { nombre, descripcion, categoria, genero, mililitros, precio, stock, imagenesUrl } = req.body;
 
-    if (!nombre || !descripcion || !categoria || !genero || !mililitros || !precio || stock === undefined) {
+    if (!nombre || !descripcion || !categoria || !genero || mililitros === undefined || precio === undefined || stock === undefined) {
       return res.status(400).json({ error: 'Todos los campos son requeridos.' });
+    }
+
+    // Normalización de enums (frontend puede enviar valores en español o con espacios)
+    const mapCategoria = (valor) => {
+      if (!valor) return null;
+      const v = valor.toString().trim().toLowerCase();
+      const mapa = {
+        'extrait de parfum': 'ExtraitDeParfum',
+        'extraitdeparfum': 'ExtraitDeParfum',
+        'parfum': 'Parfum',
+        'perfume': 'Parfum',
+        'eau de parfum': 'EauDeParfum',
+        'eaudeparfum': 'EauDeParfum',
+        'eau de toilette': 'EauDeToilette',
+        'eaudetoilette': 'EauDeToilette',
+        'eau fraiche': 'EauFraiche',
+        'eaufraiche': 'EauFraiche',
+        'fraiche': 'EauFraiche',
+        'elixir': 'Elixir',
+        'colonia': 'EauFraiche'
+      };
+      return mapa[v] || null;
+    };
+
+    const mapGenero = (valor) => {
+      if (!valor) return null;
+      const v = valor.toString().trim().toLowerCase();
+      const mapa = {
+        'male': 'Male',
+        'hombre': 'Male',
+        'masculino': 'Male',
+        'female': 'Female',
+        'mujer': 'Female',
+        'femenino': 'Female',
+        'unisex': 'Unisex'
+      };
+      return mapa[v] || null;
+    };
+
+    const categoriaEnum = mapCategoria(categoria);
+    const generoEnum = mapGenero(genero);
+
+    if (!categoriaEnum) {
+      return res.status(400).json({ error: 'Categoría inválida', detalle: categoria });
+    }
+    if (!generoEnum) {
+      return res.status(400).json({ error: 'Género inválido', detalle: genero });
     }
 
     const nuevoProducto = await CatalogoFacade.crearProducto({
       nombre,
       descripcion,
-      categoria,
-      genero,
+      categoria: categoriaEnum,
+      genero: generoEnum,
       mililitros: parseInt(mililitros),
       precio: parseFloat(precio),
       stock: parseInt(stock),
@@ -138,6 +185,43 @@ app.post('/api/productos/:id/clonar', authMiddleware, isAdmin, async (req, res) 
   }
 });
 
+// Helpers de normalización reutilizables
+const mapCategoria = (valor) => {
+  if (!valor) return null;
+  const v = valor.toString().trim().toLowerCase();
+  const mapa = {
+    'extrait de parfum': 'ExtraitDeParfum',
+    'extraitdeparfum': 'ExtraitDeParfum',
+    'parfum': 'Parfum',
+    'perfume': 'Parfum',
+    'eau de parfum': 'EauDeParfum',
+    'eaudeparfum': 'EauDeParfum',
+    'eau de toilette': 'EauDeToilette',
+    'eaudetoilette': 'EauDeToilette',
+    'eau fraiche': 'EauFraiche',
+    'eaufraiche': 'EauFraiche',
+    'fraiche': 'EauFraiche',
+    'elixir': 'Elixir',
+    'colonia': 'EauFraiche'
+  };
+  return mapa[v] || null;
+};
+
+const mapGenero = (valor) => {
+  if (!valor) return null;
+  const v = valor.toString().trim().toLowerCase();
+  const mapa = {
+    'male': 'Male',
+    'hombre': 'Male',
+    'masculino': 'Male',
+    'female': 'Female',
+    'mujer': 'Female',
+    'femenino': 'Female',
+    'unisex': 'Unisex'
+  };
+  return mapa[v] || null;
+};
+
 app.put('/api/productos/:id', authMiddleware, isAdmin, async (req, res) => {
   try {
     const { nombre, descripcion, categoria, genero, mililitros, precio, stock, imagenesUrl } = req.body;
@@ -145,8 +229,14 @@ app.put('/api/productos/:id', authMiddleware, isAdmin, async (req, res) => {
     const datosActualizados = {};
     if (nombre !== undefined) datosActualizados.nombre = nombre;
     if (descripcion !== undefined) datosActualizados.descripcion = descripcion;
-    if (categoria !== undefined) datosActualizados.categoria = categoria;
-    if (genero !== undefined) datosActualizados.genero = genero;
+    if (categoria !== undefined) {
+      const mapped = mapCategoria(categoria) || categoria;
+      datosActualizados.categoria = mapped;
+    }
+    if (genero !== undefined) {
+      const mapped = mapGenero(genero) || genero;
+      datosActualizados.genero = mapped;
+    }
     if (mililitros !== undefined) datosActualizados.mililitros = parseInt(mililitros);
     if (precio !== undefined) datosActualizados.precio = parseFloat(precio);
     if (stock !== undefined) datosActualizados.stock = parseInt(stock);
