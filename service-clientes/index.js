@@ -12,7 +12,27 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../database/.env') });
 
 const app = express();
-app.use(cors());
+
+// CORS global para servicio standalone (si se despliega como servidor)
+const allowedOrigins = [
+  'https://frontend-jyjessence.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const isVercelPreview = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
+    if (allowedOrigins.includes(origin) || isVercelPreview) return callback(null, true);
+    return callback(new Error('Origen no permitido por CORS'));
+  },
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: false,
+  maxAge: 86400
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 app.get('/api/clientes/consulta-cedula/:cedula', async (req, res) => {

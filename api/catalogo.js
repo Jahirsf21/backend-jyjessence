@@ -5,7 +5,34 @@ import isAdmin from '../shared/middleware/admin.js';
 import CatalogoFacade from '../service-catalogo/facades/catalogoFacade.js';
 
 const app = express();
-app.use(cors());
+
+// CORS estricto: permitir frontend en producción y localhost en desarrollo
+const allowedOrigins = [
+  'https://frontend-jyjessence.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Permitir llamadas sin origin (por ejemplo, cURL, pruebas internas)
+    if (!origin) return callback(null, true);
+    // Permitir previews de Vercel del mismo proyecto
+    const isVercelPreview = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
+    if (allowedOrigins.includes(origin) || isVercelPreview) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origen no permitido por CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  maxAge: 86400
+};
+
+app.use(cors(corsOptions));
+// Responder preflight explícitamente para todas las rutas
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // ==========================================
