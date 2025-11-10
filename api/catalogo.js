@@ -8,6 +8,7 @@ const app = express();
 
 // CORS estricto: permitir frontend en producción y localhost en desarrollo
 const allowedOrigins = [
+  'https://jyjessence.vercel.app',
   'https://frontend-jyjessence.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173'
@@ -18,8 +19,9 @@ const corsOptions = {
     // Permitir llamadas sin origin (por ejemplo, cURL, pruebas internas)
     if (!origin) return callback(null, true);
     // Permitir previews de Vercel del mismo proyecto
-    const isVercelPreview = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
-    if (allowedOrigins.includes(origin) || isVercelPreview) {
+    const isVercelPreviewFrontend = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
+    const isVercelPreviewMain = /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
+    if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
       return callback(null, true);
     }
     return callback(new Error('Origen no permitido por CORS'));

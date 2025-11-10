@@ -7,6 +7,7 @@ import PedidoFacade from '../service-pedido/facades/pedidoFacade.js';
 const app = express();
 
 const allowedOrigins = [
+  'https://jyjessence.vercel.app',
   'https://frontend-jyjessence.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173'
@@ -15,8 +16,9 @@ const allowedOrigins = [
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    const isVercelPreview = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
-    if (allowedOrigins.includes(origin) || isVercelPreview) {
+    const isVercelPreviewFrontend = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
+    const isVercelPreviewMain = /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
+    if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
       return callback(null, true);
     }
     return callback(new Error('Origen no permitido por CORS'));

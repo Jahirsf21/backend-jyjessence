@@ -62,9 +62,24 @@ function extractPublicId(url) {
   }
 }
 
+const allowedOrigins = [
+  'https://jyjessence.vercel.app',
+  'https://frontend-jyjessence.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
 export default async function handler(req, res) {
+  const origin = req.headers.origin;
+  const isVercelPreviewFrontend = origin && /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
+  const isVercelPreviewMain = origin && /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
+
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (!origin || allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
+    if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
+    else res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
