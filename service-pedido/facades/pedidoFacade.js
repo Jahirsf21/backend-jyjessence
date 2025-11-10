@@ -9,15 +9,10 @@ class PedidoFacade {
   }
 
   async _getCarritoFromDB(clienteId) {
-    console.log('🔍 _getCarritoFromDB - buscando items para clienteId:', clienteId);
-    
     const items = await prisma.carritoItem.findMany({
       where: { clienteId },
       include: { producto: true }
     });
-
-    console.log('🔍 Items encontrados en DB:', items.length);
-    console.log('🔍 Items detallados:', JSON.stringify(items, null, 2));
 
     const carrito = new Carrito();
     carrito.items = items.map(item => ({
@@ -26,8 +21,6 @@ class PedidoFacade {
       cantidad: item.cantidad,
       precioUnitario: item.precioUnitario
     }));
-
-    console.log('🔍 Carrito.items después de mapear:', carrito.items);
     return carrito;
   }
 
@@ -124,17 +117,12 @@ class PedidoFacade {
   }
 
   async verCarrito(clienteId) {
-    console.log('📦 verCarrito - clienteId:', clienteId);
     const carrito = await this._getCarritoFromDB(clienteId);
-    console.log('📦 Items del carrito:', carrito.getItems());
-    
     const resultado = {
       items: carrito.getItems(),
       total: carrito.calcularTotal(),
       cantidadItems: carrito.getItems().length
     };
-    
-    console.log('📦 Resultado final:', JSON.stringify(resultado, null, 2));
     return resultado;
   }
 
