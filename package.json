@@ -1,23 +1,25 @@
 {
-  "name": "backend",
+  "name": "backend-jyjessence",
   "version": "1.0.0",
   "type": "module",
   "private": true,
-  "workspaces": [
-    "database",
-    "service-clientes",
-    "service-catalogo",
-    "service-pedido",
-    "service-pagos"
-  ],
   "scripts": {
     "build": "cd database && prisma generate",
     "postinstall": "cd database && prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "@prisma/client": "^6.19.0"
+    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
+    "axios": "^1.13.2",
+    "cheerio": "^1.1.2",
+    "axios-cookiejar-support": "^6.0.4",
+    "tough-cookie": "^6.0.0",
+    "cloudinary": "^2.8.0",
+    "formidable": "^3.5.1",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "prisma": "^6.19.0"

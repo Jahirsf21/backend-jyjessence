@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/clientes/consulta-cedula/(.*)",
+      "dest": "api/clientes.js"
+    },
+    {
+      "src": "/api/clientes/registro",
+      "dest": "api/clientes.js"
+    },
+    {
+      "src": "/api/clientes/login",
+      "dest": "api/clientes.js"
+    },
+    {
+      "src": "/api/clientes/perfil",
+      "dest": "api/clientes.js"
+    },
+    {
+      "src": "/api/clientes/direcciones(.*)",
+      "dest": "api/clientes.js"
+    },
+    {
+      "src": "/api/clientes/(.*)",
+      "dest": "api/clientes.js"
+    },
+    {
+      "src": "/api/productos/buscar",
+      "dest": "api/catalogo.js"
+    },
+    {
+      "src": "/api/productos/(.*)",
+      "dest": "api/catalogo.js"
+    },
+    {
+      "src": "/api/carrito/(.*)",
+      "dest": "api/pedidos.js"
+    },
+    {
+      "src": "/api/pedidos/(.*)",
+      "dest": "api/pedidos.js"
+    },
+    {
+      "src": "/api/imagenes/(.*)",
+      "dest": "api/imagenes.js"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "JWT_SECRET": "@jwt_secret",
+    "CLOUDINARY_CLOUD_NAME": "@cloudinary_cloud_name",
+    "CLOUDINARY_API_KEY": "@cloudinary_api_key",
+    "CLOUDINARY_API_SECRET": "@cloudinary_api_secret"
+  }
+}
