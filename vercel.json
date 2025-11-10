@@ -24,6 +24,10 @@
       "dest": "api/clientes.js"
     },
     {
+      "src": "/api/clientes",
+      "dest": "api/clientes.js"
+    },
+    {
       "src": "/api/clientes/direcciones(.*)",
       "dest": "api/clientes.js"
     },
@@ -49,6 +53,10 @@
     },
     {
       "src": "/api/carrito/(.*)",
+      "dest": "api/pedidos.js"
+    },
+    {
+      "src": "/api/pedidos",
       "dest": "api/pedidos.js"
     },
     {

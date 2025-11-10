@@ -25,14 +25,18 @@ const corsOptions = {
     return callback(new Error('Origen no permitido por CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  credentials: true,
   maxAge: 86400
 };
 
 app.use(cors(corsOptions));
 // Responder preflight explícitamente para todas las rutas
 app.options('*', cors(corsOptions));
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 app.use(express.json());
 
 // ==========================================
