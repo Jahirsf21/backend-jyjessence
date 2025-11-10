@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "database",
+    "service-clientes",
+    "service-catalogo",
+    "service-pedido",
+    "service-pagos"
+  ],
+  "scripts": {
+    "build": "cd database && prisma generate",
+    "postinstall": "cd database && prisma generate"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "@prisma/client": "^6.19.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.0"
+  }
+}

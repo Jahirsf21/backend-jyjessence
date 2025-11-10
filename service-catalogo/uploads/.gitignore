@@ -1,0 +1,7 @@
+# Ignorar archivos temporales de uploads
+temp/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp

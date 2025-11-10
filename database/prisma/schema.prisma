@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  idCliente  String        @id @default(cuid())
+  nombre     String
+  apellido   String
+  cedula     String        @unique
+  genero     Genero
+  email      String        @unique
+  contrasena String
+  telefono   String?
+  role       Role          @default(USER)
+  pedidos    Pedido[]
+  carrito    CarritoItem[]
+  direcciones Direccion[]
+}
+
+model Direccion {
+  idDireccion   String   @id @default(cuid())
+  clienteId     String
+  provincia     String
+  canton        String
+  distrito      String
+  barrio        String?
+  senas         String   // Señas adicionales (ej: "200m norte de la iglesia")
+  codigoPostal  String?
+  referencia    String?  // Punto de referencia opcional
+  cliente       Cliente  @relation(fields: [clienteId], references: [idCliente], onDelete: Cascade)
+  pedidos       Pedido[]
+
+  @@index([clienteId])
+}
+
+model Producto {
+  idProducto   String             @id @default(cuid())
+  nombre       String
+  descripcion  String
+  categoria    CategoriaPerfume
+  genero       Genero
+  mililitros   Int
+  precio       Float
+  stock        Int
+  imagenesUrl  String[]           @default([])
+  pedidos      ArticuloDePedido[]
+  carritosItem CarritoItem[]
+}
+
+model CarritoItem {
+  id             String   @id @default(cuid())
+  clienteId      String
+  productoId     String
+  cantidad       Int
+  precioUnitario Float
+  fechaAgregado  DateTime @default(now())
+  cliente        Cliente  @relation(fields: [clienteId], references: [idCliente], onDelete: Cascade)
+  producto       Producto @relation(fields: [productoId], references: [idProducto], onDelete: Cascade)
+
+  @@unique([clienteId, productoId])
+  @@index([clienteId])
+}
+
+model Pedido {
+  idPedido        String             @id @default(cuid())
+  fecha           DateTime           @default(now())
+  estado          String
+  clienteId       String
+  direccionId     String            // Dirección seleccionada (obligatoria)
+  montoTotal      Float              @default(0)
+  articulos       ArticuloDePedido[]
+  cliente         Cliente            @relation(fields: [clienteId], references: [idCliente])
+  direccion       Direccion          @relation(fields: [direccionId], references: [idDireccion])
+
+  @@index([clienteId])
+  @@index([direccionId])
+}
+
+model ArticuloDePedido {
+  pedidoId       String
+  productoId     String
+  cantidad       Int
+  precioUnitario Float
+  pedido         Pedido   @relation(fields: [pedidoId], references: [idPedido])
+  producto       Producto @relation(fields: [productoId], references: [idProducto])
+
+  @@id([pedidoId, productoId])
+}
+
+enum CategoriaPerfume {
+  ExtraitDeParfum
+  Parfum
+  EauDeParfum
+  EauDeToilette
+  EauFraiche
+  Elixir
+}
+
+enum Genero {
+  Male
+  Female
+  Unisex
+}
+
+enum Role {
+  USER
+  ADMIN
+}

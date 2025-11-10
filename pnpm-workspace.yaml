@@ -1,0 +1,9 @@
+packages:
+  - database
+  - service-clientes
+  - service-catalogo
+  - service-pedido
+ignoredBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma

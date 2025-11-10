@@ -1,0 +1,17 @@
+{
+  "name": "service-catalogo",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1",
+    "cloudinary": "^2.8.0",
+    "multer": "^2.0.2"
+  }
+}
