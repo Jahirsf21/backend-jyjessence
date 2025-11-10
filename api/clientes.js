@@ -141,6 +141,24 @@ app.get('/api/clientes/:id', authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
+// Actualización admin de email y role
+app.patch('/api/clientes/:id/admin', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { email, role } = req.body;
+    if (email === undefined && role === undefined) {
+      return res.status(400).json({ error: 'Debe proporcionar email o role para actualizar.' });
+    }
+    const actualizado = await ClientFacade.actualizarAdmin(req.params.id, { email, role });
+    res.status(200).json(actualizado);
+  } catch (error) {
+    console.error('Error al actualizar cliente (admin):', error);
+    if (error.code === 'EMAIL_DUPLICADO') {
+      return res.status(409).json({ error: error.message, codigo: 'EMAIL_DUPLICADO' });
+    }
+    res.status(500).json({ error: 'No se pudo actualizar el cliente.' });
+  }
+});
+
 // ==========================================
 // ==      RUTAS DE DIRECCIONES (TOKEN)    ==
 // ==========================================

@@ -161,6 +161,7 @@ class ClientFacade {
         idCliente: true, 
         nombre: true, 
         apellido: true, 
+        cedula: true,
         email: true, 
         genero: true, 
         telefono: true, 
@@ -195,6 +196,7 @@ class ClientFacade {
         idCliente: true, 
         nombre: true, 
         apellido: true, 
+        cedula: true,
         email: true, 
         genero: true, 
         role: true, 
@@ -202,6 +204,41 @@ class ClientFacade {
         direcciones: true
       }
     });
+  }
+
+  // ==========================================
+  // == ADMIN: actualizar email y role de cliente
+  // ==========================================
+  async actualizarAdmin(idCliente, datos) {
+    const data = {};
+    if (datos.email !== undefined) data.email = datos.email;
+    if (datos.role !== undefined) data.role = datos.role;
+
+    try {
+      const actualizado = await prisma.cliente.update({
+        where: { idCliente },
+        data,
+        select: {
+          idCliente: true,
+          nombre: true,
+          apellido: true,
+          cedula: true,
+          email: true,
+          genero: true,
+          telefono: true,
+          role: true,
+          direcciones: true
+        }
+      });
+      return actualizado;
+    } catch (error) {
+      if (error.code === 'P2002') {
+        const e = new Error('El correo electrónico ya está en uso.');
+        e.code = 'EMAIL_DUPLICADO';
+        throw e;
+      }
+      throw error;
+    }
   }
 
   // ==========================================

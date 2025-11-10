@@ -270,6 +270,7 @@ class PedidoFacade {
             nombre: true,
             apellido: true,
             email: true,
+            cedula: true,
             telefono: true
           }
         },
@@ -296,7 +297,8 @@ class PedidoFacade {
           select: {
             nombre: true,
             apellido: true,
-            email: true
+            email: true,
+            cedula: true
           }
         },
         articulos: {
