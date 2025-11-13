@@ -6,6 +6,7 @@ import { dirname, join } from 'path';
 import authMiddleware from '../shared/middleware/auth.js';
 import isAdmin from '../shared/middleware/admin.js';
 import CatalogoFacade from './facades/catalogoFacade.js';
+import enumsRouter from './enums.js';
 import upload from './middleware/upload.js';
 import cloudinaryService from './services/cloudinaryService.js';
 
@@ -39,6 +40,9 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // ==========================================
+// ==      RUTA ENUMS (PÚBLICA LOCAL)      ==
+// ==========================================
+app.use('/api', enumsRouter);
 // ==   ENDPOINTS DE IMÁGENES (CLOUDINARY) ==
 // ==========================================
 

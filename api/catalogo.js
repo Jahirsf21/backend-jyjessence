@@ -1,4 +1,5 @@
 import express from 'express';
+import enumsRouter from './enums.js';
 import cors from 'cors';
 import authMiddleware from '../shared/middleware/auth.js';
 import isAdmin from '../shared/middleware/admin.js';
@@ -16,9 +17,9 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Permitir llamadas sin origin (por ejemplo, cURL, pruebas internas)
+
     if (!origin) return callback(null, true);
-    // Permitir previews de Vercel del mismo proyecto
+
     const isVercelPreviewFrontend = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
     const isVercelPreviewMain = /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
     if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
@@ -33,7 +34,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// Responder preflight explícitamente para todas las rutas
+
 app.options('*', cors(corsOptions));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -42,6 +43,9 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // ==========================================
+// ==      RUTA ENUMS (PÚBLICA)            ==
+// ==========================================
+app.use('/api', enumsRouter);
 // ==      RUTAS PÚBLICAS (SIN TOKEN)      ==
 // ==========================================
 
