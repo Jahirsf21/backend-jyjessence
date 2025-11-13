@@ -66,6 +66,10 @@
     {
       "src": "/api/imagenes/(.*)",
       "dest": "api/imagenes.js"
+    },
+    {
+      "src": "/api/enums",
+      "dest": "api/enums.js"
     }
   ]
 }
