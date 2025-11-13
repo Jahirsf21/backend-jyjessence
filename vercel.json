@@ -8,6 +8,10 @@
   ],
   "routes": [
     {
+      "src": "/api/enums",
+      "dest": "api/catalogo.js"
+    },
+    {
       "src": "/api/clientes/consulta-cedula/(.*)",
       "dest": "api/clientes.js"
     },
@@ -24,10 +28,6 @@
       "dest": "api/clientes.js"
     },
     {
-      "src": "/api/clientes",
-      "dest": "api/clientes.js"
-    },
-    {
       "src": "/api/clientes/direcciones(.*)",
       "dest": "api/clientes.js"
     },
@@ -36,11 +36,11 @@
       "dest": "api/clientes.js"
     },
     {
-      "src": "/api/productos/buscar",
-      "dest": "api/catalogo.js"
+      "src": "/api/clientes",
+      "dest": "api/clientes.js"
     },
     {
-      "src": "/api/productos",
+      "src": "/api/productos/buscar",
       "dest": "api/catalogo.js"
     },
     {
@@ -48,15 +48,15 @@
       "dest": "api/catalogo.js"
     },
     {
-      "src": "/api/carrito",
-      "dest": "api/pedidos.js"
+      "src": "/api/productos",
+      "dest": "api/catalogo.js"
     },
     {
       "src": "/api/carrito/(.*)",
       "dest": "api/pedidos.js"
     },
     {
-      "src": "/api/pedidos",
+      "src": "/api/carrito",
       "dest": "api/pedidos.js"
     },
     {
@@ -64,12 +64,12 @@
       "dest": "api/pedidos.js"
     },
     {
-      "src": "/api/imagenes/(.*)",
-      "dest": "api/imagenes.js"
+      "src": "/api/pedidos",
+      "dest": "api/pedidos.js"
     },
     {
-      "src": "/api/enums",
-      "dest": "api/enums.js"
+      "src": "/api/imagenes/(.*)",
+      "dest": "api/imagenes.js"
     }
   ]
 }
