@@ -287,9 +287,6 @@ const handler = async (req, res) => {
     return;
   }
   
-  // Logging para debugging
-  console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${origin}`);
-  
   // Delegar a la app de Express
   return app(req, res);
 };

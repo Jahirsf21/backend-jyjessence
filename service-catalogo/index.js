@@ -288,5 +288,5 @@ app.patch('/api/productos/:id/stock', authMiddleware, isAdmin, async (req, res) 
 const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
-  console.log(`Servidor de Catálogo escuchando en http://localhost:${PORT}`);
+  // Servidor de Catálogo iniciado
 });

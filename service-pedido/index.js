@@ -185,5 +185,5 @@ app.put('/api/pedidos/:id/estado', authMiddleware, isAdmin, async (req, res) => 
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(`Servidor de Pedidos escuchando en http://localhost:${PORT}`);
+  // Servidor de Pedidos iniciado
 });

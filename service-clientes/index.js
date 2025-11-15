@@ -225,5 +225,5 @@ app.delete('/api/clientes/direcciones/:id', authMiddleware, async (req, res) => 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Servidor de Clientes escuchando en http://localhost:${PORT}`);
+  // Servidor de Clientes iniciado
 });
