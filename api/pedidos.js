@@ -13,13 +13,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 config({ path: join(__dirname, '../database/.env') });
 
-// Verificar que las variables de entorno se cargaron
-console.log('🔧 Variables de entorno cargadas:');
-console.log('- EMAIL_HOST:', process.env.EMAIL_HOST || 'NO DEFINIDO');
-console.log('- EMAIL_PORT:', process.env.EMAIL_PORT || 'NO DEFINIDO');
-console.log('- EMAIL_USER:', process.env.EMAIL_USER ? '✅ DEFINIDO' : '❌ NO DEFINIDO');
-console.log('- EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ DEFINIDO' : '❌ NO DEFINIDO');
-
 const app = express();
 
 app.use(express.json());
@@ -120,23 +113,17 @@ app.post('/api/carrito/rehacer', authMiddleware, async (req, res) => {
 // Finalizar pedido sin pasarela de pago
 app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
   try {
-    console.log('📦 Recibida solicitud finalizar (autenticado)');
     const clienteId = req.user.idCliente;
     const { direccionId } = req.body || {};
 
     if (!direccionId) {
-      console.log('❌ No se proporcionó dirección de envío');
       return res.status(400).json({ error: 'Debe seleccionar una dirección de envío' });
     }
 
-    console.log('✅ Datos válidos, procesando pedido...');
     const pedido = await PedidoFacade.finalizarPedidoSinPago(clienteId, direccionId);
-    console.log('✅ Pedido creado:', pedido);
     
     // Enviar correos de confirmación
     try {
-      console.log('📧 Enviando correos de confirmación...');
-      
       // Obtener detalles completos del pedido para el correo
       const pedidoCompleto = await PedidoFacade.obtenerDetallePedido(pedido.idPedido, clienteId);
       
@@ -154,11 +141,6 @@ app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
         pedidoCompleto.items
       );
       
-      console.log('📧 Correos enviados:', { 
-        cliente: emailCliente.success, 
-        tienda: emailTienda.success 
-      });
-      
     } catch (emailError) {
       console.error('⚠️ Error al enviar correos (pedido creado):', emailError);
       // No fallamos el pedido si los correos no se envían
@@ -169,7 +151,7 @@ app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
       pedido
     });
   } catch (error) {
-    console.error('❌ Error al finalizar pedido:', error);
+    console.error('Error al finalizar pedido:', error);
     res.status(500).json({ error: error.message || 'Error al finalizar pedido' });
   }
 });
@@ -177,29 +159,20 @@ app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
 // Finalizar pedido como invitado (sin autenticación)
 app.post('/api/pedidos/finalizar-invitado', async (req, res) => {
   try {
-    console.log('📦 Recibida solicitud finalizar-invitado');
-    console.log('📋 Body:', req.body);
-    
     const { guestInfo, items } = req.body || {};
 
     if (!guestInfo || !guestInfo.email || !guestInfo.nombre || !guestInfo.direccion) {
-      console.log('❌ Información de invitado incompleta');
       return res.status(400).json({ error: 'Información de invitado incompleta. Se requiere email, nombre y dirección' });
     }
 
     if (!items || items.length === 0) {
-      console.log('❌ No hay items en el pedido');
       return res.status(400).json({ error: 'No hay items en el pedido' });
     }
 
-    console.log('✅ Datos válidos, procesando pedido...');
     const pedido = await PedidoFacade.finalizarPedidoInvitado(guestInfo, items);
-    console.log('✅ Pedido creado:', pedido);
     
     // Enviar correos de confirmación
     try {
-      console.log('📧 Enviando correos de confirmación...');
-      
       // Crear objeto de cliente para el correo
       const clienteData = {
         nombre: guestInfo.nombre,
@@ -223,11 +196,6 @@ app.post('/api/pedidos/finalizar-invitado', async (req, res) => {
         items
       );
       
-      console.log('📧 Correos enviados (invitado):', { 
-        cliente: emailCliente.success, 
-        tienda: emailTienda.success 
-      });
-      
     } catch (emailError) {
       console.error('⚠️ Error al enviar correos (pedido invitado creado):', emailError);
       // No fallamos el pedido si los correos no se envían
@@ -238,7 +206,7 @@ app.post('/api/pedidos/finalizar-invitado', async (req, res) => {
       pedido
     });
   } catch (error) {
-    console.error('❌ Error al finalizar pedido de invitado:', error);
+    console.error('Error al finalizar pedido de invitado:', error);
     res.status(500).json({ error: error.message || 'Error al finalizar pedido' });
   }
 });
@@ -306,14 +274,6 @@ app.put('/api/pedidos/:id/estado', authMiddleware, isAdmin, async (req, res) => 
 // Exportar para Vercel
 // Handler Vercel-compatible con CORS manual
 const handler = async (req, res) => {
-  // Logging inicial para debugging
-  console.log('🚀 ============================================');
-  console.log(`🚀 [${new Date().toISOString()}] INICIANDO HANDLER`);
-  console.log(`📍 Request: ${req.method} ${req.url}`);
-  console.log(`📍 Origin: ${req.headers.origin || 'SIN ORIGIN'}`);
-  console.log(`📍 Headers:`, Object.keys(req.headers));
-  console.log('🚀 ============================================');
-  
   try {
     // Configurar CORS headers manualmente para Vercel
     const origin = req.headers.origin;
@@ -329,9 +289,6 @@ const handler = async (req, res) => {
     
     if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
       res.setHeader('Access-Control-Allow-Origin', origin);
-      console.log(`✅ CORS permitido para origin: ${origin}`);
-    } else {
-      console.log(`❌ CORS bloqueado para origin: ${origin}`);
     }
     
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
@@ -341,30 +298,24 @@ const handler = async (req, res) => {
     
     // Manejar preflight OPTIONS
     if (req.method === 'OPTIONS') {
-      console.log('📋 Manejando preflight OPTIONS');
       res.status(200).end();
       return;
     }
-    
-    console.log(`📡 Delegando a Express app: ${req.method} ${req.url}`);
     
     // Delegar a la app de Express con manejo de errores
     try {
       return await app(req, res);
     } catch (expressError) {
-      console.error('💥 Error en Express app:', expressError);
-      console.error('💥 Stack trace:', expressError.stack);
+      console.error('Error en Express app:', expressError);
       if (!res.headersSent) {
         res.status(500).json({ 
           error: 'Error interno del servidor',
-          details: expressError.message,
-          stack: process.env.NODE_ENV === 'development' ? expressError.stack : undefined
+          details: expressError.message
         });
       }
     }
   } catch (handlerError) {
-    console.error('💥 Error en handler principal:', handlerError);
-    console.error('💥 Stack trace:', handlerError.stack);
+    console.error('Error en handler principal:', handlerError);
     if (!res.headersSent) {
       res.status(500).json({ 
         error: 'Error interno del servidor (handler)',

@@ -20,12 +20,13 @@ const transporter = nodemailer.createTransport({
 });
 
 // Verificar conexión al iniciar
-export const verifyEmailConnection = async () => {
+export async function verifyEmailConnection() {
   try {
     await transporter.verify();
-    console.log('✅ Conexión con servidor de correo establecida');
+    return { success: true };
   } catch (error) {
     console.error('❌ Error al conectar con servidor de correo:', error);
+    return { success: false, error: error.message };
   }
 };
 
@@ -88,8 +89,21 @@ export const sendOrderConfirmationEmail = async (pedido, cliente, items) => {
             </div>
           </div>
           
+          <div style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; padding: 25px; border-radius: 10px; margin: 30px 0; text-align: center;">
+            <h2 style="margin: 0 0 15px 0; font-size: 24px;">💳 Instrucciones de Pago</h2>
+            <p style="margin: 0 0 20px 0; font-size: 16px;">Para completar tu pedido, realiza el pago mediante Sinpe Móvil:</p>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 10px 0; font-size: 18px;"><strong>📱 Número:</strong> <span style="font-size: 20px;">8585-8585</span></p>
+              <p style="margin: 10px 0; font-size: 18px;"><strong>💰 Monto:</strong> <span style="font-size: 20px; color: #ffc107;">₡${pedido.montoTotal.toFixed(2)}</span></p>
+              <p style="margin: 10px 0; font-size: 18px;"><strong>📝 Asunto:</strong> <span style="font-size: 20px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px;">${pedido.idPedido}</span></p>
+            </div>
+            
+            <p style="margin: 15px 0 0 0; font-size: 14px; opacity: 0.9;">Una vez realizado el pago, tu pedido será procesado y enviado.</p>
+          </div>
+          
           <div style="text-align: center; margin-top: 30px;">
-            <p style="color: #6c757d;">¿Tienes preguntas? Contáctanos en support@jyjessence.com</p>
+            <p style="color: #6c757d;">¿Tienes preguntas? Contáctanos en jyjessence@gmail.com</p>
             <p style="color: #6c757d; font-size: 14px;">Este es un mensaje automático, por favor no responder.</p>
           </div>
         </div>
@@ -97,7 +111,6 @@ export const sendOrderConfirmationEmail = async (pedido, cliente, items) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Correo de confirmación enviado al cliente:', cliente.email);
     return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('❌ Error al enviar correo de confirmación:', error);
@@ -169,7 +182,6 @@ export const sendOrderNotificationEmail = async (pedido, cliente, items) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Correo de notificación enviado a la tienda');
     return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('❌ Error al enviar correo de notificación:', error);
