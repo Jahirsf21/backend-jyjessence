@@ -6,7 +6,6 @@ import { dirname, join } from 'path';
 import authMiddleware from '../shared/middleware/auth.js';
 import isAdmin from '../shared/middleware/admin.js';
 import PedidoFacade from '../service-pedido/facades/pedidoFacade.js';
-import { sendOrderConfirmationEmail, sendOrderNotificationEmail, verifyEmailConnection } from '../service-email/emailService.js';
 
 // Configurar dotenv para leer desde la carpeta database/
 const __filename = fileURLToPath(import.meta.url);
@@ -23,11 +22,6 @@ console.log('- EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ DEFINIDO' : '❌ NO D
 const app = express();
 
 app.use(express.json());
-
-// Verificar conexión con el servicio de correo de forma asíncrona (no bloquea el inicio)
-verifyEmailConnection().catch(error => {
-  console.error('⚠️ Error al verificar conexión de email (continuando sin email):', error.message);
-});
 
 // ==========================================
 // ==   RUTAS DEL CARRITO (AUTENTICADAS)  ==
@@ -120,50 +114,25 @@ app.post('/api/carrito/rehacer', authMiddleware, async (req, res) => {
 // Finalizar pedido sin pasarela de pago
 app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
   try {
+    console.log('📦 Recibida solicitud finalizar (autenticado)');
     const clienteId = req.user.idCliente;
     const { direccionId } = req.body || {};
 
     if (!direccionId) {
+      console.log('❌ No se proporcionó dirección de envío');
       return res.status(400).json({ error: 'Debe seleccionar una dirección de envío' });
     }
 
+    console.log('✅ Datos válidos, procesando pedido...');
     const pedido = await PedidoFacade.finalizarPedidoSinPago(clienteId, direccionId);
-    
-    // Enviar correos de confirmación
-    try {
-      // Obtener detalles completos del pedido para el correo
-      const pedidoCompleto = await PedidoFacade.obtenerDetallePedido(pedido.idPedido, clienteId);
-      
-      // Enviar correo al cliente
-      const emailCliente = await sendOrderConfirmationEmail(
-        pedidoCompleto.pedido,
-        pedidoCompleto.cliente,
-        pedidoCompleto.items
-      );
-      
-      // Enviar correo de notificación a la tienda
-      const emailTienda = await sendOrderNotificationEmail(
-        pedidoCompleto.pedido,
-        pedidoCompleto.cliente,
-        pedidoCompleto.items
-      );
-      
-      console.log('📧 Correos enviados:', { 
-        cliente: emailCliente.success, 
-        tienda: emailTienda.success 
-      });
-      
-    } catch (emailError) {
-      console.error('⚠️ Error al enviar correos (pedido creado):', emailError);
-      // No fallamos el pedido si los correos no se envían
-    }
+    console.log('✅ Pedido creado:', pedido);
     
     res.status(201).json({ 
       mensaje: 'Pedido creado exitosamente', 
       pedido
     });
   } catch (error) {
-    console.error('Error al finalizar pedido:', error);
+    console.error('❌ Error al finalizar pedido:', error);
     res.status(500).json({ error: error.message || 'Error al finalizar pedido' });
   }
 });
@@ -171,58 +140,31 @@ app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
 // Finalizar pedido como invitado (sin autenticación)
 app.post('/api/pedidos/finalizar-invitado', async (req, res) => {
   try {
+    console.log('📦 Recibida solicitud finalizar-invitado');
+    console.log('📋 Body:', req.body);
+    
     const { guestInfo, items } = req.body || {};
 
     if (!guestInfo || !guestInfo.email || !guestInfo.nombre || !guestInfo.direccion) {
+      console.log('❌ Información de invitado incompleta');
       return res.status(400).json({ error: 'Información de invitado incompleta. Se requiere email, nombre y dirección' });
     }
 
     if (!items || items.length === 0) {
+      console.log('❌ No hay items en el pedido');
       return res.status(400).json({ error: 'No hay items en el pedido' });
     }
 
+    console.log('✅ Datos válidos, procesando pedido...');
     const pedido = await PedidoFacade.finalizarPedidoInvitado(guestInfo, items);
-    
-    // Enviar correos de confirmación
-    try {
-      // Crear objeto de cliente para el correo
-      const clienteData = {
-        nombre: guestInfo.nombre,
-        apellido: guestInfo.apellido || '',
-        email: guestInfo.email,
-        telefono: guestInfo.telefono || ''
-      };
-      
-      // Enviar correo al cliente
-      const emailCliente = await sendOrderConfirmationEmail(
-        pedido,
-        clienteData,
-        items
-      );
-      
-      // Enviar correo de notificación a la tienda
-      const emailTienda = await sendOrderNotificationEmail(
-        pedido,
-        clienteData,
-        items
-      );
-      
-      console.log('📧 Correos enviados (invitado):', { 
-        cliente: emailCliente.success, 
-        tienda: emailTienda.success 
-      });
-      
-    } catch (emailError) {
-      console.error('⚠️ Error al enviar correos (pedido invitado creado):', emailError);
-      // No fallamos el pedido si los correos no se envían
-    }
+    console.log('✅ Pedido creado:', pedido);
     
     res.status(201).json({ 
       mensaje: 'Pedido creado exitosamente', 
       pedido
     });
   } catch (error) {
-    console.error('Error al finalizar pedido de invitado:', error);
+    console.error('❌ Error al finalizar pedido de invitado:', error);
     res.status(500).json({ error: error.message || 'Error al finalizar pedido' });
   }
 });
