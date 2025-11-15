@@ -6,6 +6,7 @@ import { dirname, join } from 'path';
 import authMiddleware from '../shared/middleware/auth.js';
 import isAdmin from '../shared/middleware/admin.js';
 import PedidoFacade from '../service-pedido/facades/pedidoFacade.js';
+import { sendOrderConfirmationEmail, sendOrderNotificationEmail, verifyEmailConnection } from '../service-email/emailService.js';
 
 // Configurar dotenv para leer desde la carpeta database/
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +23,11 @@ console.log('- EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ DEFINIDO' : '❌ NO D
 const app = express();
 
 app.use(express.json());
+
+// Verificar conexión con el servicio de correo de forma asíncrona (no bloquea el inicio)
+verifyEmailConnection().catch(error => {
+  console.error('⚠️ Error al verificar conexión de email (continuando sin email):', error.message);
+});
 
 // ==========================================
 // ==   RUTAS DEL CARRITO (AUTENTICADAS)  ==
@@ -127,6 +133,37 @@ app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
     const pedido = await PedidoFacade.finalizarPedidoSinPago(clienteId, direccionId);
     console.log('✅ Pedido creado:', pedido);
     
+    // Enviar correos de confirmación
+    try {
+      console.log('📧 Enviando correos de confirmación...');
+      
+      // Obtener detalles completos del pedido para el correo
+      const pedidoCompleto = await PedidoFacade.obtenerDetallePedido(pedido.idPedido, clienteId);
+      
+      // Enviar correo al cliente
+      const emailCliente = await sendOrderConfirmationEmail(
+        pedidoCompleto.pedido,
+        pedidoCompleto.cliente,
+        pedidoCompleto.items
+      );
+      
+      // Enviar correo de notificación a la tienda
+      const emailTienda = await sendOrderNotificationEmail(
+        pedidoCompleto.pedido,
+        pedidoCompleto.cliente,
+        pedidoCompleto.items
+      );
+      
+      console.log('📧 Correos enviados:', { 
+        cliente: emailCliente.success, 
+        tienda: emailTienda.success 
+      });
+      
+    } catch (emailError) {
+      console.error('⚠️ Error al enviar correos (pedido creado):', emailError);
+      // No fallamos el pedido si los correos no se envían
+    }
+    
     res.status(201).json({ 
       mensaje: 'Pedido creado exitosamente', 
       pedido
@@ -158,6 +195,43 @@ app.post('/api/pedidos/finalizar-invitado', async (req, res) => {
     console.log('✅ Datos válidos, procesando pedido...');
     const pedido = await PedidoFacade.finalizarPedidoInvitado(guestInfo, items);
     console.log('✅ Pedido creado:', pedido);
+    
+    // Enviar correos de confirmación
+    try {
+      console.log('📧 Enviando correos de confirmación...');
+      
+      // Crear objeto de cliente para el correo
+      const clienteData = {
+        nombre: guestInfo.nombre,
+        apellido: guestInfo.apellido || '',
+        email: guestInfo.email,
+        telefono: guestInfo.telefono || '',
+        direccion: guestInfo.direccion // Mantener objeto para el email
+      };
+      
+      // Enviar correo al cliente
+      const emailCliente = await sendOrderConfirmationEmail(
+        pedido,
+        clienteData,
+        items
+      );
+      
+      // Enviar correo de notificación a la tienda
+      const emailTienda = await sendOrderNotificationEmail(
+        pedido,
+        clienteData,
+        items
+      );
+      
+      console.log('📧 Correos enviados (invitado):', { 
+        cliente: emailCliente.success, 
+        tienda: emailTienda.success 
+      });
+      
+    } catch (emailError) {
+      console.error('⚠️ Error al enviar correos (pedido invitado creado):', emailError);
+      // No fallamos el pedido si los correos no se envían
+    }
     
     res.status(201).json({ 
       mensaje: 'Pedido creado exitosamente', 
