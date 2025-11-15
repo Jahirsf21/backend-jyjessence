@@ -21,31 +21,6 @@ console.log('- EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ DEFINIDO' : '❌ NO D
 
 const app = express();
 
-// Middleware para logging completo de requests
-app.use((req, res, next) => {
-  console.log(`📥 [${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log(`📥 Headers:`, req.headers);
-  
-  // Para requests con body
-  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
-    req.on('end', () => {
-      try {
-        req.body = JSON.parse(body);
-        console.log(`📥 Body:`, req.body);
-      } catch (e) {
-        console.log(`📥 Body (raw):`, body);
-      }
-      next();
-    });
-  } else {
-    next();
-  }
-});
-
 app.use(express.json());
 
 // ==========================================
