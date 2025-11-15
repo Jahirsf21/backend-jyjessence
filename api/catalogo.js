@@ -15,39 +15,6 @@ config({ path: join(__dirname, '../database/.env') });
 
 const app = express();
 
-// CORS estricto: permitir frontend en producción y localhost en desarrollo
-const allowedOrigins = [
-  'https://jyjessence.vercel.app',
-  'https://frontend-jyjessence.vercel.app',
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-
-    if (!origin) return callback(null, true);
-
-    const isVercelPreviewFrontend = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
-    const isVercelPreviewMain = /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
-    if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
-      return callback(null, true);
-    }
-    return callback(new Error('Origen no permitido por CORS'));
-  },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
-  credentials: true,
-  maxAge: 86400
-};
-
-app.use(cors(corsOptions));
-
-app.options('*', cors(corsOptions));
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-});
 app.use(express.json());
 
 // ==========================================
@@ -291,5 +258,40 @@ app.patch('/api/productos/:id/stock', authMiddleware, isAdmin, async (req, res) 
   }
 });
 
-// Exportar para Vercel
-export default app;
+// Handler Vercel-compatible con CORS manual
+const handler = async (req, res) => {
+  // Configurar CORS headers manualmente para Vercel
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'https://jyjessence.vercel.app',
+    'https://frontend-jyjessence.vercel.app',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+  ];
+  
+  const isVercelPreviewFrontend = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
+  const isVercelPreviewMain = /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
+  
+  if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  
+  // Manejar preflight OPTIONS
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  // Logging para debugging
+  console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${origin}`);
+  
+  // Delegar a la app de Express
+  return app(req, res);
+};
+
+export default handler;
