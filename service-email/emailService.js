@@ -102,6 +102,7 @@ export const sendOrderConfirmationEmail = async (pedido, cliente, items) => {
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <div>
                     <strong>${item.nombre}</strong><br>
+                    <small style="color: #6c757d;">${item.producto?.mililitros ? `${item.producto.mililitros}ml` : ''} ${item.producto?.descripcion ? `- ${item.producto.descripcion}` : ''}</small><br>
                     <small style="color: #6c757d;">Cantidad: ${item.cantidad} | Precio unitario: ₡${item.precioUnitario.toFixed(2)}</small>
                   </div>
                   <strong>₡${(item.cantidad * item.precioUnitario).toFixed(2)}</strong>
@@ -199,6 +200,7 @@ export const sendOrderNotificationEmail = async (pedido, cliente, items) => {
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <div>
                     <strong>${item.nombre}</strong><br>
+                    <small style="color: #6c757d;">${item.producto?.mililitros ? `${item.producto.mililitros}ml` : ''} ${item.producto?.descripcion ? `- ${item.producto.descripcion}` : ''}</small><br>
                     <small style="color: #6c757d;">Cantidad: ${item.cantidad} | Precio: ₡${item.precioUnitario.toFixed(2)}</small>
                   </div>
                   <strong style="color: #28a745;">₡${(item.cantidad * item.precioUnitario).toFixed(2)}</strong>
