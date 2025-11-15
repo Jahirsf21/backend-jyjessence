@@ -119,7 +119,7 @@ export const sendOrderConfirmationEmail = async (pedido, cliente, items) => {
             <p style="margin: 0 0 20px 0; font-size: 16px;">Para completar tu pedido, realiza el pago mediante Sinpe Móvil:</p>
             
             <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p style="margin: 10px 0; font-size: 18px;"><strong>📱 Número:</strong> <span style="font-size: 20px;">8585-8585</span></p>
+              <p style="margin: 10px 0; font-size: 18px;"><strong>📱 Número:</strong> <span style="font-size: 20px;">6044-0248</span></p>
               <p style="margin: 10px 0; font-size: 18px;"><strong>💰 Monto:</strong> <span style="font-size: 20px; color: #ffc107;">₡${pedido.montoTotal.toFixed(2)}</span></p>
               <p style="margin: 10px 0; font-size: 18px;"><strong>📝 Asunto:</strong> <span style="font-size: 20px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px;">${pedido.idPedido}</span></p>
             </div>
