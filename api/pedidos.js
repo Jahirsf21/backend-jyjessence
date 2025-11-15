@@ -21,6 +21,31 @@ console.log('- EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ DEFINIDO' : '❌ NO D
 
 const app = express();
 
+// Middleware para logging completo de requests
+app.use((req, res, next) => {
+  console.log(`📥 [${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log(`📥 Headers:`, req.headers);
+  
+  // Para requests con body
+  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        req.body = JSON.parse(body);
+        console.log(`📥 Body:`, req.body);
+      } catch (e) {
+        console.log(`📥 Body (raw):`, body);
+      }
+      next();
+    });
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 
 // ==========================================
@@ -233,9 +258,12 @@ app.put('/api/pedidos/:id/estado', authMiddleware, isAdmin, async (req, res) => 
 // Handler Vercel-compatible con CORS manual
 const handler = async (req, res) => {
   // Logging inicial para debugging
-  console.log(`🚀 [${new Date().toISOString()}] Request recibida: ${req.method} ${req.url}`);
+  console.log('🚀 ============================================');
+  console.log(`🚀 [${new Date().toISOString()}] INICIANDO HANDLER`);
+  console.log(`📍 Request: ${req.method} ${req.url}`);
   console.log(`📍 Origin: ${req.headers.origin || 'SIN ORIGIN'}`);
-  console.log(`📍 User-Agent: ${req.headers['user-agent'] || 'SIN UA'}`);
+  console.log(`📍 Headers:`, Object.keys(req.headers));
+  console.log('🚀 ============================================');
   
   try {
     // Configurar CORS headers manualmente para Vercel
@@ -269,14 +297,31 @@ const handler = async (req, res) => {
       return;
     }
     
-    // Logging para debugging
-    console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${origin}`);
+    console.log(`📡 Delegando a Express app: ${req.method} ${req.url}`);
     
-    // Delegar a la app de Express
-    return app(req, res);
-  } catch (error) {
-    console.error('💥 Error en handler:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    // Delegar a la app de Express con manejo de errores
+    try {
+      return await app(req, res);
+    } catch (expressError) {
+      console.error('💥 Error en Express app:', expressError);
+      console.error('💥 Stack trace:', expressError.stack);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Error interno del servidor',
+          details: expressError.message,
+          stack: process.env.NODE_ENV === 'development' ? expressError.stack : undefined
+        });
+      }
+    }
+  } catch (handlerError) {
+    console.error('💥 Error en handler principal:', handlerError);
+    console.error('💥 Stack trace:', handlerError.stack);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Error interno del servidor (handler)',
+        details: handlerError.message
+      });
+    }
   }
 };
 
