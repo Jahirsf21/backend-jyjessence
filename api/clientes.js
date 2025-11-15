@@ -1,8 +1,16 @@
 import express from 'express';
 import cors from 'cors';
+import { config } from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import authMiddleware from '../shared/middleware/auth.js';
 import isAdmin from '../shared/middleware/admin.js';
 import ClientFacade from '../service-clientes/facades/clientFacade.js';
+
+// Configurar dotenv para leer desde la carpeta database/
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+config({ path: join(__dirname, '../database/.env') });
 
 const app = express();
 
