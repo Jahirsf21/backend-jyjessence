@@ -250,6 +250,16 @@ class PedidoFacade {
       }
     }
 
+    // Convertir objeto de dirección a string formateado
+    const direccionString = [
+      guestInfo.direccion.provincia,
+      guestInfo.direccion.canton,
+      guestInfo.direccion.distrito
+    ].filter(Boolean).join(', ') + 
+    (guestInfo.direccion.barrio ? `, ${guestInfo.direccion.barrio}` : '') +
+    (guestInfo.direccion.senas ? `, ${guestInfo.direccion.senas}` : '') +
+    (guestInfo.direccion.referencia ? `. Ref: ${guestInfo.direccion.referencia}` : '');
+
     // Crear el pedido de invitado
     const pedido = await prisma.pedido.create({
       data: {
@@ -258,7 +268,7 @@ class PedidoFacade {
         isGuestOrder: true,
         guestEmail: guestInfo.email,
         guestName: guestInfo.nombre,
-        guestAddress: guestInfo.direccion,
+        guestAddress: direccionString,
         articulos: {
           create: items.map(item => ({
             productoId: item.productoId,
