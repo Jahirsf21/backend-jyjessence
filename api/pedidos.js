@@ -13,12 +13,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 config({ path: join(__dirname, '../database/.env') });
 
+// Verificar que las variables de entorno se cargaron
+console.log('🔧 Variables de entorno cargadas:');
+console.log('- EMAIL_HOST:', process.env.EMAIL_HOST || 'NO DEFINIDO');
+console.log('- EMAIL_PORT:', process.env.EMAIL_PORT || 'NO DEFINIDO');
+console.log('- EMAIL_USER:', process.env.EMAIL_USER ? '✅ DEFINIDO' : '❌ NO DEFINIDO');
+console.log('- EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ DEFINIDO' : '❌ NO DEFINIDO');
+
 const app = express();
 
 app.use(express.json());
 
-// Verificar conexión con el servicio de correo al iniciar
-verifyEmailConnection();
+// Verificar conexión con el servicio de correo de forma asíncrona (no bloquea el inicio)
+verifyEmailConnection().catch(error => {
+  console.error('⚠️ Error al verificar conexión de email (continuando sin email):', error.message);
+});
 
 // ==========================================
 // ==   RUTAS DEL CARRITO (AUTENTICADAS)  ==
@@ -281,38 +290,52 @@ app.put('/api/pedidos/:id/estado', authMiddleware, isAdmin, async (req, res) => 
 // Exportar para Vercel
 // Handler Vercel-compatible con CORS manual
 const handler = async (req, res) => {
-  // Configurar CORS headers manualmente para Vercel
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    'https://jyjessence.vercel.app',
-    'https://frontend-jyjessence.vercel.app',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173'
-  ];
+  // Logging inicial para debugging
+  console.log(`🚀 [${new Date().toISOString()}] Request recibida: ${req.method} ${req.url}`);
+  console.log(`📍 Origin: ${req.headers.origin || 'SIN ORIGIN'}`);
+  console.log(`📍 User-Agent: ${req.headers['user-agent'] || 'SIN UA'}`);
   
-  const isVercelPreviewFrontend = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
-  const isVercelPreviewMain = /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
-  
-  if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  try {
+    // Configurar CORS headers manualmente para Vercel
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+      'https://jyjessence.vercel.app',
+      'https://frontend-jyjessence.vercel.app',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173'
+    ];
+    
+    const isVercelPreviewFrontend = /^https?:\/\/frontend-jyjessence-.*\.vercel\.app$/.test(origin);
+    const isVercelPreviewMain = /^https?:\/\/jyjessence-.*\.vercel\.app$/.test(origin);
+    
+    if (allowedOrigins.includes(origin) || isVercelPreviewFrontend || isVercelPreviewMain) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      console.log(`✅ CORS permitido para origin: ${origin}`);
+    } else {
+      console.log(`❌ CORS bloqueado para origin: ${origin}`);
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    
+    // Manejar preflight OPTIONS
+    if (req.method === 'OPTIONS') {
+      console.log('📋 Manejando preflight OPTIONS');
+      res.status(200).end();
+      return;
+    }
+    
+    // Logging para debugging
+    console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${origin}`);
+    
+    // Delegar a la app de Express
+    return app(req, res);
+  } catch (error) {
+    console.error('💥 Error en handler:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400');
-  
-  // Manejar preflight OPTIONS
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
-  // Logging para debugging
-  console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${origin}`);
-  
-  // Delegar a la app de Express
-  return app(req, res);
 };
 
 export default handler;
