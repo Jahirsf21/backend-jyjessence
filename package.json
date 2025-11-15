@@ -19,7 +19,8 @@
     "tough-cookie": "^6.0.0",
     "cloudinary": "^2.8.0",
     "formidable": "^3.5.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "nodemailer": "^6.9.8"
   },
   "devDependencies": {
     "prisma": "^6.19.0"
