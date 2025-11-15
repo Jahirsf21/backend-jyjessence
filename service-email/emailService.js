@@ -84,7 +84,7 @@ export const sendOrderConfirmationEmail = async (pedido, cliente, items) => {
             `).join('')}
             
             <div style="border-top: 2px solid #333; padding-top: 10px; margin-top: 10px; text-align: right;">
-              <strong style="font-size: 18px;">Total: ₡${pedido.total.toFixed(2)}</strong>
+              <strong style="font-size: 18px;">Total: ₡${pedido.montoTotal.toFixed(2)}</strong>
             </div>
           </div>
           
@@ -128,7 +128,7 @@ export const sendOrderNotificationEmail = async (pedido, cliente, items) => {
             <p><strong>Pedido #:</strong> ${pedido.idPedido}</p>
             <p><strong>Fecha:</strong> ${new Date(pedido.fecha).toLocaleDateString('es-ES')}</p>
             <p><strong>Estado:</strong> <span style="background: #ffc107; color: #212529; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${pedido.estado}</span></p>
-            <p><strong>Total:</strong> <strong style="color: #28a745;">₡${pedido.total.toFixed(2)}</strong></p>
+            <p><strong>Total:</strong> <strong style="color: #28a745;">₡${pedido.montoTotal.toFixed(2)}</strong></p>
           </div>
           
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
