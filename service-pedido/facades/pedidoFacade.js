@@ -141,6 +141,22 @@ class PedidoFacade {
     return carrito.getItems();
   }
 
+  async limpiarCarrito(clienteId) {
+    const carrito = await this._getCarritoFromDB(clienteId);
+    
+    // Guardar estado actual antes de limpiar (para posible deshacer)
+    const caretaker = this._getCaretaker(clienteId);
+    caretaker.guardarEstado(carrito.guardarEstado());
+    
+    // Limpiar todos los items del carrito
+    carrito.limpiar();
+    
+    // Guardar carrito vacío en la base de datos
+    await this._saveCarritoToDB(clienteId, carrito);
+    
+    return carrito.getItems(); // Retorna array vacío
+  }
+
   async rehacerCarrito(clienteId) {
     const carrito = await this._getCarritoFromDB(clienteId);
     const caretaker = this._getCaretaker(clienteId);

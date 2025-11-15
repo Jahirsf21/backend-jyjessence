@@ -95,6 +95,17 @@ app.post('/api/carrito/deshacer', authMiddleware, async (req, res) => {
   }
 });
 
+app.delete('/api/carrito/limpiar', authMiddleware, async (req, res) => {
+  try {
+    const clienteId = req.user.idCliente;
+    const items = await PedidoFacade.limpiarCarrito(clienteId);
+    res.status(200).json({ mensaje: 'Carrito limpiado exitosamente', items });
+  } catch (error) {
+    console.error('Error al limpiar carrito:', error);
+    res.status(500).json({ error: error.message || 'Error al limpiar carrito' });
+  }
+});
+
 app.post('/api/carrito/rehacer', authMiddleware, async (req, res) => {
   try {
     const clienteId = req.user.idCliente;
