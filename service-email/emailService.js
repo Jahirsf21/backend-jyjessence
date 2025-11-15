@@ -2,11 +2,15 @@ import nodemailer from 'nodemailer';
 import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { PrismaClient } from '@prisma/client';
 
 // Configurar dotenv para leer desde la carpeta database/
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 config({ path: join(__dirname, '../database/.env') });
+
+// Inicializar Prisma Client
+const prisma = new PrismaClient();
 
 // Configuración del transporter con Gmail
 const transporter = nodemailer.createTransport({
@@ -18,6 +22,27 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS
   }
 });
+
+// Función para obtener todos los administradores
+export async function getAdminUsers() {
+  try {
+    const admins = await prisma.cliente.findMany({
+      where: {
+        role: 'ADMIN'
+      },
+      select: {
+        email: true,
+        nombre: true,
+        apellido: true,
+        telefono: true
+      }
+    });
+    return admins;
+  } catch (error) {
+    console.error('Error al obtener administradores:', error);
+    return [];
+  }
+}
 
 // Verificar conexión al iniciar
 export async function verifyEmailConnection() {
@@ -121,13 +146,21 @@ export const sendOrderConfirmationEmail = async (pedido, cliente, items) => {
 // Función para enviar correo de notificación a la tienda
 export const sendOrderNotificationEmail = async (pedido, cliente, items) => {
   try {
+    // Obtener todos los administradores
+    const admins = await getAdminUsers();
+    
+    // Si no hay administradores, enviar al email principal
+    const recipients = admins.length > 0 
+      ? admins.map(admin => admin.email).join(', ')
+      : process.env.EMAIL_USER;
+
     const itemsList = items.map(item => 
       `${item.cantidad}x ${item.nombre} - ₡${(item.cantidad * item.precioUnitario).toFixed(2)}`
     ).join('\n');
 
     const mailOptions = {
       from: `"JYJ Essence" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Enviar al mismo correo de la tienda
+      to: recipients, // Enviar a todos los administradores
       subject: `🛒 Nuevo Pedido #${pedido.idPedido} - JYJ Essence`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -191,6 +224,7 @@ export const sendOrderNotificationEmail = async (pedido, cliente, items) => {
 
 export default {
   verifyEmailConnection,
+  getAdminUsers,
   sendOrderConfirmationEmail,
   sendOrderNotificationEmail
 };

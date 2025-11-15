@@ -161,8 +161,8 @@ app.post('/api/pedidos/finalizar-invitado', async (req, res) => {
   try {
     const { guestInfo, items } = req.body || {};
 
-    if (!guestInfo || !guestInfo.email || !guestInfo.nombre || !guestInfo.direccion) {
-      return res.status(400).json({ error: 'Información de invitado incompleta. Se requiere email, nombre y dirección' });
+    if (!guestInfo || !guestInfo.email || !guestInfo.nombre || !guestInfo.telefono || !guestInfo.direccion) {
+      return res.status(400).json({ error: 'Información de invitado incompleta. Se requiere email, nombre, teléfono y dirección' });
     }
 
     if (!items || items.length === 0) {
