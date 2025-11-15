@@ -146,6 +146,30 @@ app.post('/api/pedidos/finalizar', authMiddleware, async (req, res) => {
   }
 });
 
+// Finalizar pedido como invitado (sin autenticación)
+app.post('/api/pedidos/finalizar-invitado', async (req, res) => {
+  try {
+    const { guestInfo, items } = req.body || {};
+
+    if (!guestInfo || !guestInfo.email || !guestInfo.nombre || !guestInfo.direccion) {
+      return res.status(400).json({ error: 'Información de invitado incompleta. Se requiere email, nombre y dirección' });
+    }
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'No hay items en el pedido' });
+    }
+
+    const pedido = await PedidoFacade.finalizarPedidoInvitado(guestInfo, items);
+    res.status(201).json({ 
+      mensaje: 'Pedido creado exitosamente', 
+      pedido
+    });
+  } catch (error) {
+    console.error('Error al finalizar pedido de invitado:', error);
+    res.status(500).json({ error: error.message || 'Error al finalizar pedido' });
+  }
+});
+
 app.get('/api/pedidos/historial', authMiddleware, async (req, res) => {
   try {
     const clienteId = req.user.idCliente;

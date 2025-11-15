@@ -200,6 +200,7 @@ class PedidoFacade {
         estado: 'Pendiente',
         direccionId: direccionId,
         montoTotal: montoTotal,
+        isGuestOrder: false,
         articulos: {
           create: items.map(item => ({
             productoId: item.productoId,
@@ -220,6 +221,61 @@ class PedidoFacade {
     });
 
     // En este modo, simplemente devolvemos el pedido creado
+    return pedido;
+  }
+
+  // Crea un pedido para un usuario invitado
+  async finalizarPedidoInvitado(guestInfo, items) {
+    if (!guestInfo || !guestInfo.email || !guestInfo.nombre || !guestInfo.direccion) {
+      throw new Error('Información de invitado incompleta');
+    }
+
+    if (!items || items.length === 0) {
+      throw new Error('No hay items en el pedido');
+    }
+
+    // Calcular monto total
+    const montoTotal = items.reduce((total, item) => {
+      return total + (item.precioUnitario * item.cantidad);
+    }, 0);
+
+    // Validar stock
+    for (const item of items) {
+      const producto = await prisma.producto.findUnique({
+        where: { idProducto: item.productoId }
+      });
+
+      if (!producto || producto.stock < item.cantidad) {
+        throw new Error(`Stock insuficiente para ${item.nombre}`);
+      }
+    }
+
+    // Crear el pedido de invitado
+    const pedido = await prisma.pedido.create({
+      data: {
+        estado: 'Pendiente',
+        montoTotal: montoTotal,
+        isGuestOrder: true,
+        guestEmail: guestInfo.email,
+        guestName: guestInfo.nombre,
+        guestAddress: guestInfo.direccion,
+        articulos: {
+          create: items.map(item => ({
+            productoId: item.productoId,
+            cantidad: item.cantidad,
+            precioUnitario: item.precioUnitario
+          }))
+        }
+      },
+      include: {
+        articulos: {
+          include: {
+            producto: true
+          }
+        }
+      }
+    });
+
     return pedido;
   }
 

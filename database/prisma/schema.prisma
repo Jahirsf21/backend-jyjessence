@@ -70,12 +70,17 @@ model Pedido {
   idPedido        String             @id @default(cuid())
   fecha           DateTime           @default(now())
   estado          String
-  clienteId       String
-  direccionId     String            // Dirección seleccionada (obligatoria)
+  clienteId       String?            // Optional for guest orders
+  direccionId     String?            // Optional for guest orders
   montoTotal      Float              @default(0)
+  // Guest information fields
+  guestEmail      String?            // Guest email
+  guestName       String?            // Guest full name
+  guestAddress    String?            // Guest full address
+  isGuestOrder    Boolean            @default(false)  // Flag to identify guest orders
   articulos       ArticuloDePedido[]
-  cliente         Cliente            @relation(fields: [clienteId], references: [idCliente])
-  direccion       Direccion          @relation(fields: [direccionId], references: [idDireccion])
+  cliente         Cliente?           @relation(fields: [clienteId], references: [idCliente])
+  direccion       Direccion?         @relation(fields: [direccionId], references: [idDireccion])
 
   @@index([clienteId])
   @@index([direccionId])
